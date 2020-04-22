@@ -2,8 +2,20 @@ import motors as m
 #import bump as b
 import RPi.GPIO as GPIO
 import time
+#new stuff
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import db
 
 import signal
+
+#new stuff
+# Fetch the service account key JSON file contents
+cred = credentials.Certificate('path/to/serviceAccountKey.json')
+# Initialize the app with a service account, granting admin privileges
+firebase_admin.initialize_app(cred, {
+    'databaseURL': 'https://srrobo.firebaseio.com/'
+})
 
 def interrupted(signum, frame):
     print ('asdf')
@@ -40,10 +52,12 @@ GPIO.add_event_detect(bump_sensor4, GPIO.RISING, callback=my_callback)
 
 while (1):
     x = input() 
+    # As an admin, the app has access to read and write all data, regradless of Security Rules
+    cmd = db.reference('command')
 
-    if x=='w':
+    if x=='w' or cmd == 'Forward':
         m.forward()
-    elif x=='a':
+    elif x=='a' or cmd == 'Left':
         m.left_turn()
         time.sleep(0.1)
         m.stop()
@@ -51,7 +65,7 @@ while (1):
         m.left_turn()
         time.sleep(0.4)
         m.stop()
-    elif x=='d':
+    elif x=='d' or cmd == 'Right':
         m.right_turn()
         time.sleep(0.1)
         m.stop()
@@ -59,7 +73,7 @@ while (1):
         m.right_turn()
         time.sleep(0.4)
         m.stop()
-    elif x=='ss':
+    elif x=='ss' or cmd == 'Back':
         m.reverse()
-    elif x=='s':
+    elif x=='s' or cmd == 'End':
         m.stop()
